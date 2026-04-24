@@ -147,14 +147,38 @@ def return_item(item_id: str = None, customer_id: str = None):
     """
     Moves a rental from rental to rental_history with return_date = today.
     """
-    raise NotImplementedError("you must implement this function")
+
+    query = "SELECT * FROM rental WHERE item_id = ? AND customer_id = ?"
+    cur.execute(query, (item_id, customer_id,))
+    rentals = cur.fetchone()
+
+    query = "DELETE FROM rental WHERE item_id = ? AND customer_id = ?"
+    cur.execute(query, (item_id, customer_id,))
+
+    query = "INSERT INTO rental_history VALUES (?, ?, ?, ?, ?)"
+    rentals.append(str(date.today()))
+    cur.execute(query, rentals)
+
+
+    #raise NotImplementedError("you must implement this function")
 
 
 def grant_extension(item_id: str = None, customer_id: str = None):
     """
     Adds 14 days to the due_date.
     """
-    raise NotImplementedError("you must implement this function")
+
+    query = "SELECT due_date FROM rental WHERE item_id = ? AND customer_id = ?"
+    cur.execute(query, (item_id, customer_id,))
+    ddate = date.fromisoformat(cur.fetchone()[0])
+
+    new_ddate = ddate + timedelta(days=14)
+
+    query = "UPDATE rental SET due_date = ? WHERE item_id = ? AND customer_id = ?"
+    cur.execute(query, (new_ddate, item_id, customer_id,))
+
+
+    #raise NotImplementedError("you must implement this function")
 
 
 def get_filtered_items(filter_attributes: Item = None,
