@@ -237,33 +237,74 @@ def number_in_stock(item_id: str = None) -> int:
     """
     Returns num_owned - active rentals. Returns -1 if item doesn't exist.
     """
-    raise NotImplementedError("you must implement this function")
+
+    query = "SELECT COUNT(*) FROM rental WHERE item_id = ?"
+    cur.execute(query, (item_id,))
+    active_rentals = int(cur.fetchone()[0])
+
+    query = "SELECT i_num_owned FROM item WHERE item_id = ?"
+    cur.execute(query, (item_id,))
+    num_owned = cur.fetchone()
+
+    if len(num_owned) == 0:
+        return -1
+    else:
+        return int(num_owned[0]) - active_rentals
+
+
+    #raise NotImplementedError("you must implement this function")
 
 
 def place_in_line(item_id: str = None, customer_id: str = None) -> int:
     """
     Returns the customer's place_in_line, or -1 if not on waitlist.
     """
-    raise NotImplementedError("you must implement this function")
+
+    query = "SELECT place_in_line FROM waitlist WHERE item_id = ? AND customer_id = ?"
+    cur.execute(query, (item_id, customer_id,))
+    place = cur.fetchone()
+
+    if len(place) == 0:
+        return -1
+    else:
+        return int(place[0])
+
+    #raise NotImplementedError("you must implement this function")
 
 
 def line_length(item_id: str = None) -> int:
     """
     Returns how many people are on the waitlist for this item.
     """
-    raise NotImplementedError("you must implement this function")
+
+    query = "SELECT COUNT(*) FROM waitlist WHERE item_id = ?"
+    cur.execute(query, (item_id,))
+    waiters = cur.fetchone()[0]
+
+    return waiters
+
+    #raise NotImplementedError("you must implement this function")
 
 
 def save_changes():
     """
     Commits all changes made to the db.
     """
-    raise NotImplementedError("you must implement this function")
+
+    conn.commit()
+
+    #raise NotImplementedError("you must implement this function")
 
 
 def close_connection():
     """
     Closes the cursor and connection.
     """
-    raise NotImplementedError("you must implement this function")
+
+    if cur:
+        cur.close()
+    if conn:
+        conn.close()
+
+    #raise NotImplementedError("you must implement this function")
 
