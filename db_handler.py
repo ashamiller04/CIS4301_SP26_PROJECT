@@ -30,6 +30,8 @@ def add_item(new_item: Item = None):
          new_item.brand, new_item.category, new_item.manufact, new_item.current_price, new_item.num_owned)
     )
 
+    conn.commit()
+
     #raise NotImplementedError("you must implement this function")
 
 
