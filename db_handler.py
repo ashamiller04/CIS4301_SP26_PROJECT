@@ -1,5 +1,3 @@
-from asyncio import ThreadedChildWatcher
-
 from MARIADB_CREDS import DB_CONFIG
 from mariadb import connect
 from models.RentalHistory import RentalHistory
@@ -70,11 +68,6 @@ def edit_customer(original_customer_id: str = None, new_customer: Customer = Non
     new_customer - A Customer object containing attributes to update. If an attribute is None, it should not be altered.
     """
 
-    if new_customer.customer_id is not None:
-
-        query = "UPDATE customer SET customer.c_customer_id = ? WHERE c_customer_id = ?"
-        cur.execute(query, (new_customer.customer_id, original_customer_id))
-
     if new_customer.name is not None:
 
         query = ("UPDATE customer SET customer.c_first_name = ?, customer.c_last_name = ? "
@@ -100,6 +93,11 @@ def edit_customer(original_customer_id: str = None, new_customer: Customer = Non
         cur.execute(query, (new_address[0], new_address[1]+" "+new_address[2], new_address[3],
                             new_address[4], new_address[5], old_addr))
 
+
+    if new_customer.customer_id is not None:
+
+        query = "UPDATE customer SET customer.c_customer_id = ? WHERE c_customer_id = ?"
+        cur.execute(query, (new_customer.customer_id, original_customer_id))
     #raise NotImplementedError("you must implement this function")
 
 
