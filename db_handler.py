@@ -30,7 +30,6 @@ def add_item(new_item: Item = None):
          new_item.brand, new_item.category, new_item.manufact, new_item.current_price, new_item.num_owned)
     )
 
-    conn.commit()
 
     #raise NotImplementedError("you must implement this function")
 
@@ -59,7 +58,6 @@ def add_customer(new_customer: Customer = None):
         "?, ?, ?, ?, ?)",
         (new_customer.customer_id, name[0], name[1], new_customer.email, addr_sk)
     )
-    conn.commit()
 
     # raise NotImplementedError("you must implement this function")
 
@@ -108,6 +106,7 @@ def rent_item(item_id: str = None, customer_id: str = None):
     item_id - A string containing the Item ID for the item being rented.
     customer_id - A string containing the customer id of the customer renting the item.
     """
+
     raise NotImplementedError("you must implement this function")
 
 
