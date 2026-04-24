@@ -120,19 +120,27 @@ def waitlist_customer(item_id: str = None, customer_id: str = None) -> int:
     """
     Returns the customer's new place in line.
     """
-    raise NotImplementedError("you must implement this function")
+
+    cur.execute("SELECT place_in_line FROM waitlist WHERE customer_id = ? AND item_id",
+                (customer_id,item_id))
+
+    return int(cur.fetchone()[0])
+
+    #raise NotImplementedError("you must implement this function")
+
 
 def update_waitlist(item_id: str = None):
     """
     Removes person at position 1 and shifts everyone else down by 1.
     """
 
+    query = "DELETE FROM waitlist WHERE item_id = ? AND place_in_line = 1"
+    cur.execute(query, (item_id,))
 
+    query = "UPDATE waitlist SET place_in_line = place_in_line - 1 WHERE item_id = ?"
+    cur.execute(query, (item_id,))
 
-
-
-    
-    raise NotImplementedError("you must implement this function")
+    #raise NotImplementedError("you must implement this function")
 
 
 def return_item(item_id: str = None, customer_id: str = None):
