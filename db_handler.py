@@ -1,3 +1,5 @@
+from asyncio import ThreadedChildWatcher
+
 from MARIADB_CREDS import DB_CONFIG
 from mariadb import connect
 from models.RentalHistory import RentalHistory
@@ -190,7 +192,127 @@ def get_filtered_items(filter_attributes: Item = None,
     """
     Returns a list of Item objects matching the filters.
     """
-    raise NotImplementedError("you must implement this function")
+
+    table_list = []
+
+    if filter_attributes.item_id is not None:
+        if use_patterns:
+            query = "SELECT * FROM item WHERE i_item_id LIKE ?"
+        else:
+            query = "SELECT * FROM item WHERE i_item_id = ?"
+        cur.execute(query, (filter_attributes.item_id,))
+        ids = cur.fetchall()
+        table_list.append(set(ids))
+
+    if filter_attributes.product_name is not None:
+        if use_patterns:
+            query = "SELECT * FROM item WHERE i_product_name LIKE ?"
+        else:
+            query = "SELECT * FROM item WHERE i_product_name = ?"
+
+        cur.execute(query, (filter_attributes.product_name,))
+        names = cur.fetchall()
+        table_list.append(set(names))
+
+    if filter_attributes.brand is not None:
+        if use_patterns:
+            query = "SELECT * FROM item WHERE i_brand LIKE ?"
+        else:
+            query = "SELECT * FROM item WHERE i_brand = ?"
+        cur.execute(query, (filter_attributes.brand,))
+        brands = cur.fetchall()
+        table_list.append(set(brands))
+
+    if filter_attributes.category is not None:
+        if use_patterns:
+            query = "SELECT * FROM item WHERE i_category LIKE ?"
+        else:
+            query = "SELECT * FROM item WHERE i_category = ?"
+        cur.execute(query, (filter_attributes.category,))
+        categories = cur.fetchall()
+        table_list.append(set(categories))
+
+    if filter_attributes.manufact is not None:
+        if use_patterns:
+            query = "SELECT * FROM item WHERE i_manufact LIKE ?"
+        else:
+            query = "SELECT * FROM item WHERE i_manufact = ?"
+        cur.execute(query, (filter_attributes.manufact,))
+        manufacts = cur.fetchall()
+        table_list.append(set(manufacts))
+
+    # start current_price checking
+
+    if filter_attributes.current_price != -1:
+
+        query = "SELECT * FROM item WHERE i_current_price = ?"
+        cur.execute(query, (filter_attributes.current_price,))
+        prices = cur.fetchall()
+        table_list.append(set(prices))
+
+
+    if min_price != -1 and max_price != -1:
+        query = "SELECT * FROM item WHERE i_current_price >= ? AND i_current_price <= ?"
+        cur.execute(query, (min_price, max_price))
+        prices = cur.fetchall()
+        table_list.append(set(prices))
+
+    elif min_price != -1:
+        query = "SELECT * FROM item WHERE i_current_price >= ?"
+        cur.execute(query, (min_price, ))
+        prices = cur.fetchall()
+        table_list.append(set(prices))
+
+    elif max_price != -1:
+        query = "SELECT * FROM item WHERE i_current_price <= ?"
+        cur.execute(query, (max_price, ))
+        prices = cur.fetchall()
+        table_list.append(set(prices))
+
+    # stop current_price checking
+
+    #begin start_year checking
+
+    if filter_attributes.start_year != -1:
+        query = "SELECT * FROM item WHERE YEAR(i_rec_start_date) = ?"
+        cur.execute(query, (filter_attributes.start_year,))
+        year = cur.fetchall()
+        table_list.append(set(year))
+
+    if min_start_year != -1 and max_start_year != -1:
+        query = ("SELECT * FROM item WHERE YEAR(i_rec_start_year) >= ? "
+                 "AND YEAR(i_rec_start_year) <= ?")
+        cur.execute(query, (min_start_year, max_start_year))
+        years = cur.fetchall()
+        table_list.append(set(years))
+    elif min_start_year != -1:
+        query = "SELECT * FROM item WHERE YEAR(i_rec_start_year) >= ?"
+        cur.execute(query, (min_start_year,))
+        years = cur.fetchall()
+        table_list.append(set(years))
+    elif max_start_year != -1:
+        query = "SELECT * FROM item WHERE YEAR(i_rec_start_year) <= ?"
+        cur.execute(query, (max_start_year,))
+        years = cur.fetchall()
+        table_list.append(set(years))
+
+    #stop start_year checking
+
+    if filter_attributes.num_owned != -1:
+        query = "SELECT * FROM item WHERE i_num_owned = ?"
+        cur.execute(query, (filter_attributes.num_owned,))
+        owned = cur.fetchall()
+        table_list.append(set(owned))
+
+
+
+
+    mega_table = set.intersection(*table_list)
+
+    return list(mega_table)
+
+
+    #raise NotImplementedError("you must implement this function")
 
 
 def get_filtered_customers(filter_attributes: Customer = None, use_patterns: bool = False) -> list[Customer]:
