@@ -75,10 +75,20 @@ def edit_customer(original_customer_id: str = None, new_customer: Customer = Non
         cur.execute(query,
                     (new_customer.name.split(" ")[0], new_customer.name.split(" ")[1], original_customer_id))
 
+        query = "SELECT * FROM customer WHERE c_customer_id = ?"
+        cur.execute(query, (original_customer_id,))
+        new_mail = cur.fetchone()
+        print(new_mail)
+
     if new_customer.email is not None:
 
         query = "UPDATE customer SET customer.c_email_address = ? WHERE c_customer_id = ?"
-        cur.execute(query, (new_customer.email, original_customer_id))
+        cur.execute(query, (new_customer.email, original_customer_id, ))
+
+        query = "SELECT * FROM customer WHERE c_customer_id = ?"
+        cur.execute(query, (original_customer_id, ))
+        new_mail = cur.fetchone()
+        print(new_mail)
 
     if new_customer.address is not None:
 
@@ -93,11 +103,22 @@ def edit_customer(original_customer_id: str = None, new_customer: Customer = Non
         cur.execute(query, (new_address[0], new_address[1]+" "+new_address[2], new_address[3],
                             new_address[4], new_address[5], old_addr))
 
+        query = "SELECT * FROM customer WHERE c_customer_id = ?"
+        cur.execute(query, (original_customer_id,))
+        new_mail = cur.fetchone()
+        print(new_mail)
 
     if new_customer.customer_id is not None:
 
-        query = "UPDATE customer SET customer.c_customer_id = ? WHERE c_customer_id = ?"
+        #TODO This is the problem!!
+
+        query = "UPDATE customer SET c_customer_id = ? WHERE c_customer_id = ?"
         cur.execute(query, (new_customer.customer_id, original_customer_id))
+
+        query = "SELECT * FROM customer WHERE c_customer_id = ?"
+        cur.execute(query, (new_customer.customer_id,))
+        new_mail = cur.fetchone()
+        print(new_mail)
     #raise NotImplementedError("you must implement this function")
 
 
