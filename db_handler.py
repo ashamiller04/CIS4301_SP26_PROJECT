@@ -28,7 +28,26 @@ def add_customer(new_customer: Customer = None):
     new_customer - A Customer object containing a new customer to be inserted into the DB in the customer table.
         new_customer and its attributes will never be None.
     """
-    raise NotImplementedError("you must implement this function")
+    address = new_customer.address.split(" ")
+    cur.execute(
+        "INSERT INTO customer_address "
+        "(ca_address_sk, ca_street_number, ca_street_name, ca_city, ca_state, ca_zip) "
+        "VALUES ((SELECT COALESCE(MAX(ca_address_sk), 0) + 1 FROM customer_address AS tmp), "
+        "?, ?, ?, ?, ?)",
+        (address[0], address[1]+" "+address[2], address[3], address[4], address[5])
+    )
+    cur.execute("SELECT MAX(ca_address_sk) FROM customer_address")
+    addr_sk = cur.fetchone()[0]
+
+    name = new_customer.name.split(" ")
+    cur.execute(
+        "INSERT INTO customer "
+        "(c_customer_sk, c_customer_id, c_first_name, c_last_name, c_email_address, c_current_addr_sk) "
+        "VALUES ((SELECT COALESCE(MAX(c_customer_sk), 0) + 1 FROM customer AS tmp), "
+        "?, ?, ?, ?, ?)",
+        (new_customer.customer_id, name[0], name[1], new_customer.email, addr_sk)
+    )
+    conn.commit()
 
 
 def edit_customer(original_customer_id: str = None, new_customer: Customer = None):
