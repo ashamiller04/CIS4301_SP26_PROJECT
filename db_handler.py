@@ -107,7 +107,13 @@ def rent_item(item_id: str = None, customer_id: str = None):
     customer_id - A string containing the customer id of the customer renting the item.
     """
 
-    raise NotImplementedError("you must implement this function")
+    rental_date = date.today()
+    due_date = rental_date + timedelta(days=14)
+
+    query = "INSERT INTO rental (item_id, customer_id, rental_date, due_date) VALUES (?, ?, ?, ?)"
+    cur.execute(query, (item_id, customer_id, str(rental_date), str(due_date)))
+
+    #raise NotImplementedError("you must implement this function")
 
 
 def waitlist_customer(item_id: str = None, customer_id: str = None) -> int:
@@ -120,6 +126,12 @@ def update_waitlist(item_id: str = None):
     """
     Removes person at position 1 and shifts everyone else down by 1.
     """
+
+
+
+
+
+    
     raise NotImplementedError("you must implement this function")
 
 
