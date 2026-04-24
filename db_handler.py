@@ -61,13 +61,46 @@ def add_customer(new_customer: Customer = None):
     )
     conn.commit()
 
+    # raise NotImplementedError("you must implement this function")
+
 
 def edit_customer(original_customer_id: str = None, new_customer: Customer = None):
     """
     original_customer_id - A string containing the customer id for the customer to be edited.
     new_customer - A Customer object containing attributes to update. If an attribute is None, it should not be altered.
     """
-    raise NotImplementedError("you must implement this function")
+
+    if new_customer.customer_id is not None:
+
+        query = "UPDATE customer SET customer.c_customer_id = ? WHERE c_customer_id = ?"
+        cur.execute(query, (new_customer.customer_id, original_customer_id))
+
+    if new_customer.name is not None:
+
+        query = ("UPDATE customer SET customer.c_first_name = ?, customer.c_last_name = ? "
+                 "WHERE c_customer_id = ?")
+        cur.execute(query,
+                    (new_customer.name.split(" ")[0], new_customer.name.split(" ")[1], original_customer_id))
+
+    if new_customer.email is not None:
+
+        query = "UPDATE customer SET customer.c_email_address = ? WHERE c_customer_id = ?"
+        cur.execute(query, (new_customer.email, original_customer_id))
+
+    if new_customer.address is not None:
+
+        new_address = new_customer.address.split(" ")
+        cur.execute("SELECT c_current_addr_sk FROM customer WHERE c_customer_id = ?", (original_customer_id, ))
+        old_addr = cur.fetchone()[0]
+
+        query = ("UPDATE customer_address SET "
+                 "customer_address.ca_street_number = ?, customer_address.ca_street_name = ?, "
+                 "customer_address.ca_city = ?, customer_address.ca_state = ?, customer_address.ca_zip = ? "
+                 "WHERE ca_address_sk = ?")
+        cur.execute(query, (new_address[0], new_address[1]+" "+new_address[2], new_address[3],
+                            new_address[4], new_address[5], old_addr))
+
+    #raise NotImplementedError("you must implement this function")
 
 
 def rent_item(item_id: str = None, customer_id: str = None):
