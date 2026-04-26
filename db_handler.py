@@ -378,7 +378,43 @@ def get_filtered_rentals(filter_attributes: Rental = None,
     """
     Returns a list of Rental objects matching the filters.
     """
-    raise NotImplementedError("you must implement this function")
+    query = "SELECT item_id, customer_id, rental_date, due_date FROM rental WHERE TRUE"
+    questions = []
+
+    if filter_attributes.customer_id is not None:
+        query += " AND customer_id = ?"
+        questions.append(filter_attributes.customer_id)
+    if filter_attributes.item_id is not None:
+        query += " AND item_id = ?"
+        questions.append(filter_attributes.item_id)
+    if filter_attributes.rental_date is not None:
+        query += " AND rental_date = ?"
+        questions.append(filter_attributes.rental_date)
+    if filter_attributes.due_date is not None:
+        query += " AND due_date = ?"
+        questions.append(filter_attributes.due_date)
+
+    if min_rental_date is not None:
+        query += " AND rental_date > ?"
+        questions.append(min_rental_date)
+    if max_rental_date is not None:
+        query += " AND rental_date < ?"
+        questions.append(max_rental_date)
+    if min_due_date is not None:
+        query += " AND due_date > ?"
+        questions.append(min_due_date)
+    if max_due_date is not None:
+        query += " AND due_date < ?"
+        questions.append(max_due_date)
+
+    cur.execute(query, tuple(questions))
+    rentals = []
+    for i in cur.fetchall():
+        print(i)
+        rentals.append(Rental(*i))
+
+    return rentals
+    #raise NotImplementedError("you must implement this function")
 
 
 def get_filtered_rental_histories(filter_attributes: RentalHistory = None,
