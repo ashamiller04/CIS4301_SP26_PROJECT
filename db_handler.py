@@ -110,8 +110,6 @@ def edit_customer(original_customer_id: str = None, new_customer: Customer = Non
 
     if new_customer.customer_id is not None:
 
-        #TODO This is the problem!!
-
         query = "UPDATE customer SET c_customer_id = ? WHERE c_customer_id = ?"
         cur.execute(query, (new_customer.customer_id, original_customer_id))
 
@@ -391,7 +389,65 @@ def get_filtered_rental_histories(filter_attributes: RentalHistory = None,
     """
     Returns a list of RentalHistory objects matching the filters.
     """
-    raise NotImplementedError("you must implement this function")
+    query = "SELECT item_id, customer_id, rental_date, due_date, return_date FROM ITEM WHERE TRUE"
+    questions = []
+
+    if filter_attributes.item_id is not None:
+        query += " AND item_id = ?"
+        questions.append(filter_attributes.item_id)
+
+    if filter_attributes.customer_id is not None:
+        query += " AND customer_id = ?"
+        questions.append(filter_attributes.customer_id)
+
+
+    if filter_attributes.rental_date is not None:
+        query += " AND rental_date = ?"
+        questions.append(filter_attributes.rental_date)
+
+    if min_rental_date is not None:
+        query += " AND rental_date >= ?"
+        questions.append(min_rental_date)
+
+    if max_rental_date is not None:
+        query += " AND rental_date <= ?"
+        questions.append(max_rental_date)
+
+
+    if filter_attributes.due_date is not None:
+        query += " AND due_date = ?"
+        questions.append(filter_attributes.due_date)
+
+    if min_due_date is not None:
+        query += " AND due_date >= ?"
+        questions.append(min_due_date)
+
+    if max_due_date is not None:
+        query += " AND due_date <= ?"
+        questions.append(max_due_date)
+
+
+    if filter_attributes.return_date is not None:
+        query += " AND return_date = ?"
+        questions.append(filter_attributes.return_date)
+
+    if min_return_date is not None:
+        query += " AND return_date >= ?"
+        questions.append(min_return_date)
+
+    if max_return_date is not None:
+        query += " AND return_date <= ?"
+        questions.append(max_return_date)
+
+
+    cur.execute(query, tuple(questions))
+    histories = []
+    for i in cur.fetchall():
+        histories.append(RentalHistory(*i))
+
+    return histories
+
+    #raise NotImplementedError("you must implement this function")
 
 
 def get_filtered_waitlist(filter_attributes: Waitlist = None,
