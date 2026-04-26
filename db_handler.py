@@ -141,8 +141,12 @@ def waitlist_customer(item_id: str = None, customer_id: str = None) -> int:
     """
     Returns the customer's new place in line.
     """
+    cur.execute("(SELECT COALESCE(MAX(place_in_line), 0) + 1 FROM waitlist AS tmp WHERE item_id=?)", (item_id, ))
+    pil = cur.fetchone()[0]
 
-    cur.execute("SELECT place_in_line FROM waitlist WHERE customer_id = ? AND item_id",
+    query = "INSERT INTO waitlist (item_id, customer_id, place_in_line) VALUES (?, ?, ?)"
+    cur.execute(query, (item_id, customer_id, pil))
+    cur.execute("SELECT place_in_line FROM waitlist WHERE customer_id = ? AND item_id = ?",
                 (customer_id,item_id))
 
     return int(cur.fetchone()[0])
@@ -171,14 +175,14 @@ def return_item(item_id: str = None, customer_id: str = None):
 
     query = "SELECT * FROM rental WHERE item_id = ? AND customer_id = ?"
     cur.execute(query, (item_id, customer_id,))
-    rentals = cur.fetchone()
+    rentals = list(cur.fetchone())
 
     query = "DELETE FROM rental WHERE item_id = ? AND customer_id = ?"
     cur.execute(query, (item_id, customer_id,))
 
     query = "INSERT INTO rental_history VALUES (?, ?, ?, ?, ?)"
     rentals.append(str(date.today()))
-    cur.execute(query, rentals)
+    cur.execute(query, tuple(rentals))
 
 
     #raise NotImplementedError("you must implement this function")
@@ -191,7 +195,7 @@ def grant_extension(item_id: str = None, customer_id: str = None):
 
     query = "SELECT due_date FROM rental WHERE item_id = ? AND customer_id = ?"
     cur.execute(query, (item_id, customer_id,))
-    ddate = date.fromisoformat(cur.fetchone()[0])
+    ddate = date.fromisoformat(str(cur.fetchone()[0]))
 
     new_ddate = ddate + timedelta(days=14)
 
@@ -383,7 +387,7 @@ def number_in_stock(item_id: str = None) -> int:
     cur.execute(query, (item_id,))
     active_rentals = int(cur.fetchone()[0])
 
-    query = "SELECT i_num_owned FROM item WHERE item_id = ?"
+    query = "SELECT i_num_owned FROM item WHERE i_item_id = ?"
     cur.execute(query, (item_id,))
     num_owned = cur.fetchone()
 
@@ -405,7 +409,7 @@ def place_in_line(item_id: str = None, customer_id: str = None) -> int:
     cur.execute(query, (item_id, customer_id,))
     place = cur.fetchone()
 
-    if len(place) == 0:
+    if place is None:
         return -1
     else:
         return int(place[0])
