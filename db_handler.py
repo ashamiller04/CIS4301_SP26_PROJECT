@@ -408,7 +408,7 @@ def get_filtered_rental_histories(filter_attributes: RentalHistory = None,
     """
     Returns a list of RentalHistory objects matching the filters.
     """
-    query = "SELECT item_id, customer_id, rental_date, due_date, return_date FROM ITEM WHERE TRUE"
+    query = "SELECT item_id, customer_id, rental_date, due_date, return_date FROM rental_history WHERE TRUE"
     questions = []
 
     if filter_attributes.item_id is not None:
@@ -462,7 +462,7 @@ def get_filtered_rental_histories(filter_attributes: RentalHistory = None,
     cur.execute(query, tuple(questions))
     histories = []
     for i in cur.fetchall():
-        histories.append(RentalHistory(*i))
+        histories.append(RentalHistory(i[0], i[1], str(i[2]), str(i[3]), str(i[4])))
 
     return histories
 
@@ -484,7 +484,7 @@ def get_filtered_waitlist(filter_attributes: Waitlist = None,
     if filter_attributes.customer_id is not None:
         query += " AND customer_id = ?"
         questions.append(filter_attributes.customer_id)
-    if filter_attributes.place_in_line is not None:
+    if filter_attributes.place_in_line != -1:
         query += " AND place_in_line = ?"
         questions.append(filter_attributes.place_in_line)
 
@@ -499,7 +499,7 @@ def get_filtered_waitlist(filter_attributes: Waitlist = None,
     waitlists = []
 
     for i in cur.fetchall():
-        waitlists.append(Waitlist(*i))
+        waitlists.append(Waitlist(i[0], i[1], i[2]))
 
     return waitlists
     # raise NotImplementedError("you must implement this function")
