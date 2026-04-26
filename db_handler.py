@@ -216,123 +216,87 @@ def get_filtered_items(filter_attributes: Item = None,
     Returns a list of Item objects matching the filters.
     """
 
-    table_list = []
+    query = ("SELECT i_item_id, YEAR(i_rec_start_date), i_product_name, i_brand, i_category, i_manufact, "
+             "i_current_price, i_num_owned FROM ITEM WHERE TRUE")
+    questions = []
 
     if filter_attributes.item_id is not None:
         if use_patterns:
-            query = "SELECT * FROM item WHERE i_item_id LIKE ?"
+            query += " AND i_item_id LIKE ?"
         else:
-            query = "SELECT * FROM item WHERE i_item_id = ?"
-        cur.execute(query, (filter_attributes.item_id,))
-        ids = cur.fetchall()
-        table_list.append(set(ids))
+            query += " AND i_item_id = ?"
+        questions.append(filter_attributes.item_id)
 
     if filter_attributes.product_name is not None:
         if use_patterns:
-            query = "SELECT * FROM item WHERE i_product_name LIKE ?"
+            query += " AND i_product_name LIKE ?"
         else:
-            query = "SELECT * FROM item WHERE i_product_name = ?"
-
-        cur.execute(query, (filter_attributes.product_name,))
-        names = cur.fetchall()
-        table_list.append(set(names))
+            query += " AND i_product_name = ?"
+        questions.append(filter_attributes.product_name)
 
     if filter_attributes.brand is not None:
         if use_patterns:
-            query = "SELECT * FROM item WHERE i_brand LIKE ?"
+            query += " AND i_brand LIKE ?"
         else:
-            query = "SELECT * FROM item WHERE i_brand = ?"
-        cur.execute(query, (filter_attributes.brand,))
-        brands = cur.fetchall()
-        table_list.append(set(brands))
+            query += " AND i_brand = ?"
+        questions.append(filter_attributes.brand)
 
     if filter_attributes.category is not None:
         if use_patterns:
-            query = "SELECT * FROM item WHERE i_category LIKE ?"
+            query += " AND i_category LIKE ?"
         else:
-            query = "SELECT * FROM item WHERE i_category = ?"
-        cur.execute(query, (filter_attributes.category,))
-        categories = cur.fetchall()
-        table_list.append(set(categories))
+            query += " AND i_category = ?"
+        questions.append(filter_attributes.category)
 
     if filter_attributes.manufact is not None:
         if use_patterns:
-            query = "SELECT * FROM item WHERE i_manufact LIKE ?"
+            query += " AND i_manufact LIKE ?"
         else:
-            query = "SELECT * FROM item WHERE i_manufact = ?"
-        cur.execute(query, (filter_attributes.manufact,))
-        manufacts = cur.fetchall()
-        table_list.append(set(manufacts))
+            query += " AND i_manufact = ?"
+        questions.append(filter_attributes.manufact)
 
     # start current_price checking
 
     if filter_attributes.current_price != -1:
+        query += " AND i_current_price = ?"
+        questions.append(filter_attributes.current_price)
 
-        query = "SELECT * FROM item WHERE i_current_price = ?"
-        cur.execute(query, (filter_attributes.current_price,))
-        prices = cur.fetchall()
-        table_list.append(set(prices))
+    if min_price != -1:
+        query += " AND i_current_price >= ?"
+        questions.append(min_price)
 
-
-    if min_price != -1 and max_price != -1:
-        query = "SELECT * FROM item WHERE i_current_price >= ? AND i_current_price <= ?"
-        cur.execute(query, (min_price, max_price))
-        prices = cur.fetchall()
-        table_list.append(set(prices))
-
-    elif min_price != -1:
-        query = "SELECT * FROM item WHERE i_current_price >= ?"
-        cur.execute(query, (min_price, ))
-        prices = cur.fetchall()
-        table_list.append(set(prices))
-
-    elif max_price != -1:
-        query = "SELECT * FROM item WHERE i_current_price <= ?"
-        cur.execute(query, (max_price, ))
-        prices = cur.fetchall()
-        table_list.append(set(prices))
+    if max_price != -1:
+        query += " AND i_current_price <= ?"
+        questions.append(max_price)
 
     # stop current_price checking
 
     #begin start_year checking
 
     if filter_attributes.start_year != -1:
-        query = "SELECT * FROM item WHERE YEAR(i_rec_start_date) = ?"
-        cur.execute(query, (filter_attributes.start_year,))
-        year = cur.fetchall()
-        table_list.append(set(year))
+        query += " AND YEAR(i_rec_start_date) = ?"
+        questions.append(filter_attributes.start_year)
 
-    if min_start_year != -1 and max_start_year != -1:
-        query = ("SELECT * FROM item WHERE YEAR(i_rec_start_year) >= ? "
-                 "AND YEAR(i_rec_start_year) <= ?")
-        cur.execute(query, (min_start_year, max_start_year))
-        years = cur.fetchall()
-        table_list.append(set(years))
-    elif min_start_year != -1:
-        query = "SELECT * FROM item WHERE YEAR(i_rec_start_year) >= ?"
-        cur.execute(query, (min_start_year,))
-        years = cur.fetchall()
-        table_list.append(set(years))
-    elif max_start_year != -1:
-        query = "SELECT * FROM item WHERE YEAR(i_rec_start_year) <= ?"
-        cur.execute(query, (max_start_year,))
-        years = cur.fetchall()
-        table_list.append(set(years))
+    if min_start_year != -1:
+        query += " AND YEAR(i_rec_start_year) >= ?"
+        questions.append(min_start_year)
+
+    if max_start_year != -1:
+        query += " AND YEAR(i_rec_start_year) <= ?"
+        questions.append(max_start_year)
 
     #stop start_year checking
 
     if filter_attributes.num_owned != -1:
-        query = "SELECT * FROM item WHERE i_num_owned = ?"
-        cur.execute(query, (filter_attributes.num_owned,))
-        owned = cur.fetchall()
-        table_list.append(set(owned))
+        query += " AND i_num_owned = ?"
+        questions.append(filter_attributes.num_owned)
 
+    cur.execute(query, tuple(questions))
+    items = []
+    for i in cur.fetchall():
+        items.append(Item(*i))
 
-
-
-    mega_table = set.intersection(*table_list)
-
-    return list(mega_table)
+    return items
 
 
     #raise NotImplementedError("you must implement this function")
