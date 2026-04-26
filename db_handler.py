@@ -346,7 +346,6 @@ def get_filtered_customers(filter_attributes: Customer = None, use_patterns: boo
     cur.execute(query, tuple(questions))
     customers = []
     for i in cur.fetchall():
-        print(i)
         customers.append(Customer(*i))
 
     return customers
@@ -393,7 +392,6 @@ def get_filtered_rentals(filter_attributes: Rental = None,
     cur.execute(query, tuple(questions))
     rentals = []
     for i in cur.fetchall():
-        print(i)
         rentals.append(Rental(*i))
 
     return rentals
@@ -501,7 +499,6 @@ def get_filtered_waitlist(filter_attributes: Waitlist = None,
     waitlists = []
 
     for i in cur.fetchall():
-        print(i)
         waitlists.append(Waitlist(*i))
 
     return waitlists
