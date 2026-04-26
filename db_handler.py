@@ -261,11 +261,11 @@ def get_filtered_items(filter_attributes: Item = None,
         questions.append(filter_attributes.start_year)
 
     if min_start_year != -1:
-        query += " AND YEAR(i_rec_start_year) >= ?"
+        query += " AND YEAR(i_rec_start_date) >= ?"
         questions.append(min_start_year)
 
     if max_start_year != -1:
-        query += " AND YEAR(i_rec_start_year) <= ?"
+        query += " AND YEAR(i_rec_start_date) <= ?"
         questions.append(max_start_year)
 
     #stop start_year checking
@@ -392,7 +392,7 @@ def get_filtered_rentals(filter_attributes: Rental = None,
     cur.execute(query, tuple(questions))
     rentals = []
     for i in cur.fetchall():
-        rentals.append(Rental(*i))
+        rentals.append(Rental(i[0], i[1], str(i[2]), str(i[3])))
 
     return rentals
     #raise NotImplementedError("you must implement this function")
