@@ -393,16 +393,16 @@ def get_filtered_rentals(filter_attributes: Rental = None,
         questions.append(filter_attributes.due_date)
 
     if min_rental_date is not None:
-        query += " AND rental_date > ?"
+        query += " AND rental_date >= ?"
         questions.append(min_rental_date)
     if max_rental_date is not None:
-        query += " AND rental_date < ?"
+        query += " AND rental_date <= ?"
         questions.append(max_rental_date)
     if min_due_date is not None:
-        query += " AND due_date > ?"
+        query += " AND due_date >= ?"
         questions.append(min_due_date)
     if max_due_date is not None:
-        query += " AND due_date < ?"
+        query += " AND due_date <= ?"
         questions.append(max_due_date)
 
     cur.execute(query, tuple(questions))
@@ -492,6 +492,16 @@ def get_filtered_waitlist(filter_attributes: Waitlist = None,
     """
     Returns a list of Waitlist objects matching the filters.
     """
+    query = "SELECT item_id, customer_id, place_in_line FROM waitlist WHERE TRUE"
+    questions = []
+
+
+    cur.execute(query, tuple(questions))
+    waitlists = []
+    for i in cur.fetchall():
+        print(i)
+        waitlists.append(Waitlist(*i))
+
     raise NotImplementedError("you must implement this function")
 
 
