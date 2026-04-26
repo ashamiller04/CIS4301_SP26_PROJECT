@@ -495,14 +495,32 @@ def get_filtered_waitlist(filter_attributes: Waitlist = None,
     query = "SELECT item_id, customer_id, place_in_line FROM waitlist WHERE TRUE"
     questions = []
 
+    if filter_attributes.item_id is not None:
+        query += " AND item_id = ?"
+        questions.append(filter_attributes.item_id)
+    if filter_attributes.customer_id is not None:
+        query += " AND customer_id = ?"
+        questions.append(filter_attributes.customer_id)
+    if filter_attributes.place_in_line is not None:
+        query += " AND place_in_line = ?"
+        questions.append(filter_attributes.place_in_line)
+
+    if min_place_in_line != -1:
+        query += " AND place_in_line >= ?"
+        questions.append(min_place_in_line)
+    if max_place_in_line != -1:
+        query += " AND place_in_line <= ?"
+        questions.append(max_place_in_line)
 
     cur.execute(query, tuple(questions))
     waitlists = []
+
     for i in cur.fetchall():
         print(i)
         waitlists.append(Waitlist(*i))
 
-    raise NotImplementedError("you must implement this function")
+    return waitlists
+    # raise NotImplementedError("you must implement this function")
 
 
 def number_in_stock(item_id: str = None) -> int:
