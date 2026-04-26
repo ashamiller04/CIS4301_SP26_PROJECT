@@ -100,8 +100,8 @@ def edit_customer(original_customer_id: str = None, new_customer: Customer = Non
                  "customer_address.ca_street_number = ?, customer_address.ca_street_name = ?, "
                  "customer_address.ca_city = ?, customer_address.ca_state = ?, customer_address.ca_zip = ? "
                  "WHERE ca_address_sk = ?")
-        cur.execute(query, (new_address[0], new_address[1]+" "+new_address[2], new_address[3],
-                            new_address[4], new_address[5], old_addr))
+        cur.execute(query, (new_address[0], " ".join(new_address[1:-3]), new_address[-3],
+                            new_address[-2], new_address[-1], old_addr))
 
         query = "SELECT * FROM customer WHERE c_customer_id = ?"
         cur.execute(query, (original_customer_id,))
@@ -216,8 +216,8 @@ def get_filtered_items(filter_attributes: Item = None,
     Returns a list of Item objects matching the filters.
     """
 
-    query = ("SELECT i_item_id, YEAR(i_rec_start_date), i_product_name, i_brand, i_category, i_manufact, "
-             "i_current_price, i_num_owned FROM ITEM WHERE TRUE")
+    query = ("SELECT i_item_id, i_product_name, i_brand, i_category, i_manufact, "
+             "i_current_price, YEAR(i_rec_start_date), i_num_owned FROM ITEM WHERE TRUE")
     questions = []
 
     if filter_attributes.item_id is not None:
@@ -306,7 +306,68 @@ def get_filtered_customers(filter_attributes: Customer = None, use_patterns: boo
     """
     Returns a list of Customer objects matching the filters.
     """
-    raise NotImplementedError("you must implement this function")
+    query = ("SELECT c_customer_id, CONCAT(c_first_name,\" \",c_last_name), "
+             "(SELECT CONCAT(ca_street_number, \" \", ca_street_name, \" \", ca_city,"
+             "\" \", ca_state, \" \", ca_zip) "
+             "FROM customer_address WHERE ca_address_sk=c_current_addr_sk)"
+             ",c_email_address FROM customer WHERE TRUE")
+    questions = []
+
+    if use_patterns:
+        if filter_attributes.customer_id is not None:
+            query += " AND c_customer_id LIKE ?"
+            questions.append(filter_attributes.customer_id)
+        if filter_attributes.name is not None:
+            nm = filter_attributes.name.split(" ")
+            query += " AND c_first_name LIKE ? AND c_last_name LIKE ?"
+            questions.append(nm[0])
+            questions.append(nm[1])
+        if filter_attributes.email is not None:
+            query += " AND c_email_address LIKE ?"
+            questions.append(filter_attributes.email)
+        if filter_attributes.address is not None:
+            addr = filter_attributes.address.split(" ")
+            query += " AND c_current_addr_sk = ?"
+            cur.execute("SELECT ca_address_sk FROM customer_address WHERE ca_street_number LIKE ? "
+                        "AND ca_street_name LIKE ? AND ca_city LIKE ? AND ca_state LIKE ? AND ca_zip LIKE ?",
+                        (addr[0], " ".join(addr[1:-3]), addr[-3], addr[-2], addr[-1]))
+            res = cur.fetchone()
+            if res is not None:
+                questions.append(res[0])
+            else:
+                return []
+    else:
+        if filter_attributes.customer_id is not None:
+            query += " AND c_customer_id = ?"
+            questions.append(filter_attributes.customer_id)
+        if filter_attributes.name is not None:
+            nm = filter_attributes.name.split(" ")
+            query += " AND c_first_name = ? AND c_last_name = ?"
+            questions.append(nm[0])
+            questions.append(nm[1])
+        if filter_attributes.email is not None:
+            query += " AND c_email_address = ?"
+            questions.append(filter_attributes.email)
+        if filter_attributes.address is not None:
+            addr = filter_attributes.address.split(" ")
+            query += " AND c_current_addr_sk = ?"
+            cur.execute("SELECT ca_address_sk FROM customer_address WHERE ca_street_number = ? "
+                        "AND ca_street_name = ? AND ca_city = ? AND ca_state = ? AND ca_zip = ?",
+                        (addr[0], " ".join(addr[1:-3]), addr[-3], addr[-2], addr[-1]))
+            res = cur.fetchone()
+            if res is not None:
+                questions.append(res[0])
+            else:
+                return []
+
+    cur.execute(query, tuple(questions))
+    customers = []
+    for i in cur.fetchall():
+        print(i)
+        customers.append(Customer(*i))
+
+    return customers
+    # raise NotImplementedError("you must implement this function")
 
 
 def get_filtered_rentals(filter_attributes: Rental = None,
