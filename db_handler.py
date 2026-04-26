@@ -45,7 +45,8 @@ def add_customer(new_customer: Customer = None):
         "(ca_address_sk, ca_street_number, ca_street_name, ca_city, ca_state, ca_zip) "
         "VALUES ((SELECT COALESCE(MAX(ca_address_sk), 0) + 1 FROM customer_address AS tmp), "
         "?, ?, ?, ?, ?)",
-        (address[0], address[1]+" "+address[2], address[3], address[4], address[5])
+        (address[0], " ".join(address[1:-3]), address[-3],
+         address[-2], address[-1])
     )
     cur.execute("SELECT MAX(ca_address_sk) FROM customer_address")
     addr_sk = cur.fetchone()[0]
